@@ -68,7 +68,7 @@
       <section class="card">
         <p class="eyebrow">Trust Gap · prototype</p>
         <h1>What would you share, and why?</h1>
-        <p>You will set your sharing preferences, then review three data requests from a fictional app, ${app}. Each request has a short check, an explanation and a decision. At the end you will see how your confidence compared with your accuracy.</p>
+        <p>You will set your sharing preferences, then review ${items.length} data requests from a fictional app, ${app}. Each request has a short check, an explanation and a decision. At the end you will see how your confidence compared with your accuracy.</p>
         <p class="note">The scenario is fictional. Everything is stored only in this browser.</p>
         <div class="actions"><button class="primary" id="begin">Begin</button></div>
       </section>`;
@@ -282,10 +282,20 @@
       }));
       return;
     }
+    // Keep the full names for tooltips, and break them into short lines for the axis
+    // so the labels stay horizontal and do not overlap on narrow screens.
+    const names = rows.map((r) => items.find((i) => i.id === r.item).label);
+    const wrapLabel = (text, width = 12) => text.split(' ').reduce((lines, word) => {
+      const last = lines[lines.length - 1];
+      if (last !== undefined && (last + ' ' + word).length <= width) lines[lines.length - 1] = last + ' ' + word;
+      else lines.push(word);
+      return lines;
+    }, []);
+
     chart = new Chart(canvas, {
       type: 'bar',
       data: {
-        labels: rows.map((r) => items.find((i) => i.id === r.item).label),
+        labels: names.map((name) => wrapLabel(name)),
         datasets: [
           { label: 'Confidence', data: rows.map((r) => r.confidence), backgroundColor: '#b8a58a' },
           { label: 'Correct (100) or incorrect (0)', data: rows.map((r) => (r.correct ? 100 : 0)), backgroundColor: '#2f4a4a' },
@@ -294,8 +304,14 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: { y: { min: 0, max: 100, title: { display: true, text: 'Points out of 100' } } },
-        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          x: { ticks: { maxRotation: 0, autoSkip: false } },
+          y: { min: 0, max: 100, title: { display: true, text: 'Points out of 100' } },
+        },
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: { callbacks: { title: (tips) => names[tips[0].dataIndex] } },
+        },
       },
     });
   }

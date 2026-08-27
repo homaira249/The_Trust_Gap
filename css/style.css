@@ -61,7 +61,9 @@ fieldset.likert {
   padding: 16px 0 6px;
   margin: 0;
 }
-legend { font-size: 16px; padding: 0; margin-bottom: 10px; }
+/* Floated so the browser does not draw the legend on top of the fieldset's border. */
+legend { font-size: 16px; padding: 0; margin-bottom: 10px; float: left; width: 100%; }
+legend + .scale { clear: both; }
 
 .scale { display: flex; gap: 8px; flex-wrap: wrap; }
 .scale label { position: relative; }
